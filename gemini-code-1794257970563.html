@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Educación Cívica - MCS</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { background-color: #050505; color: #00FFFF; font-family: Arial, sans-serif; margin: 0; padding: 20px; line-height: 1.6; }
+        h1, h2, h3, h4 { color: #00FFFF; text-align: center; }
+        
+        /* PORTADA */
+        .portada-container { border: 2px solid #00FFFF; padding: 30px; border-radius: 8px; background-color: #0a0a0a; max-width: 900px; margin: 0 auto 30px auto; }
+        .portada-header { text-align: left; margin-bottom: 20px; font-size: 1.1em; }
+        .portada-header h1 { text-align: left; margin: 0 0 5px 0; font-size: 1.8em; }
+        .portada-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; font-size: 1.1em; }
+        .student-inputs { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 15px; margin-bottom: 30px; }
+        .input-line { background: transparent; border: none; border-bottom: 1px solid #00FFFF; color: #00FFFF; font-size: 1em; width: 100%; padding: 5px; outline: none; }
+        .input-line:focus { background-color: rgba(0, 255, 255, 0.1); }
+
+        /* INSTRUCCIONES */
+        .instrucciones { border: 1px solid #00FFFF; padding: 20px; margin-bottom: 25px; border-radius: 5px; background-color: #111; }
+        .instrucciones h3 { text-align: left; margin-top: 0; }
+        .instrucciones ol { margin-top: 10px; padding-left: 20px; }
+
+        /* EXAMEN Y BOTONES */
+        button { background-color: #000000; color: #00FFFF; border: 2px solid #00FFFF; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 5px; display: block; margin: 30px auto; text-transform: uppercase; }
+        button:hover { background-color: #00FFFF; color: #000000; box-shadow: 0 0 15px #00FFFF; }
+        .mcq-question, .sa-question { margin-bottom: 25px; padding: 15px; background-color: #0a0a0a; border-left: 3px solid #00FFFF; }
+        .q-text { font-weight: bold; margin-bottom: 10px; }
+        .mcq-question label { display: block; margin-bottom: 8px; cursor: pointer; }
+        input[type="radio"] { accent-color: #00FFFF; margin-right: 8px; }
+        input[type="text"] { background-color: #222; color: #00FFFF; border: 1px solid #00FFFF; padding: 8px; border-radius: 4px; width: 100%; max-width: 300px; font-family: Arial, sans-serif; }
+        
+        /* PAREO */
+        .pareo-container { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 25px; }
+        .pareo-col-a { flex: 2; min-width: 300px; }
+        .pareo-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dotted #008888; padding: 15px 0; }
+        .pareo-item:last-child { border-bottom: none; }
+        .pareo-item label { width: 85%; margin: 0; font-size: 15px; }
+        .pareo-input { width: 45px; height: 40px; text-align: center; text-transform: uppercase; font-size: 18px; border: 1px solid #00FFFF; background-color: #222; color: #00FFFF; border-radius: 4px; }
+        .pareo-col-b { flex: 1; min-width: 250px; background-color: #031414; padding: 20px; border-radius: 8px; border: 1px solid #004444; height: fit-content; }
+        .pareo-col-b ul { list-style: none; padding: 0; margin: 0; }
+        .pareo-col-b li { margin-bottom: 12px; font-size: 15px; }
+        .pareo-col-b li strong { color: #00FFFF; }
+
+        /* UTILIDADES Y SEGURIDAD */
+        #fraudModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.98); z-index: 10000; justify-content: center; align-items: center; flex-direction: column; text-align: center; }
+        #fraudModal h2 { color: red; font-size: 3em; margin-bottom: 10px; }
+        #timerDisplay { position: fixed; top: 10px; right: 20px; font-size: 20px; font-weight: bold; background-color: #000000; padding: 10px 20px; border: 2px solid #00FFFF; border-radius: 8px; box-shadow: 0 0 10px #00FFFF; z-index: 5000; display: none; }
+        #resultsScreen { display: none; max-width: 900px; margin: 0 auto; }
+        .bitacora-container { background-color: #0a0a0a; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-color: #00FFFF; }
+        th, td { border: 1px solid #00FFFF; padding: 10px; text-align: left; }
+        th { background-color: #111; }
+    </style>
+</head>
+<body>
+
+    <!-- PORTADA -->
+    <div id="loginScreen" class="portada-container">
+        <div class="portada-header">
+            <h1>Monterrey Christian School</h1>
+            <strong>Departamento:</strong> Estudios Sociales y Cívica<br>
+            <strong>2026:</strong> Puestos los ojos en Jesús
+        </div>
+        <div class="portada-grid">
+            <div>
+                <strong>Asignatura:</strong> Educación Cívica<br>
+                <strong>Profesora:</strong> Emilia Gamboa M.<br>
+                <strong>Nivel:</strong> Noveno año<br>
+                <strong>Fecha de Aplicación:</strong> 11 noviembre, 2026
+            </div>
+            <div>
+                <strong>Valor total de la prueba:</strong> <span id="vTotal">60</span> puntos<br>
+                <strong>Valor porcentual:</strong> <span id="vPorc">30</span>%
+            </div>
+        </div>
+        <div class="student-inputs">
+            <div><strong>Nombre:</strong> <input type="text" id="estName" class="input-line" placeholder="Digite su nombre completo"></div>
+            <div><strong>Sección:</strong> <input type="text" id="estSec" class="input-line" placeholder="Ej. 9-A"></div>
+        </div>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <strong>Tiempo probable (Detectado Automáticamente):</strong> 
+            <select id="estTimer" style="background-color: #111; color: #00FFFF; border: 1px solid #00FFFF; padding: 5px; border-radius: 4px; pointer-events:none;">
+                <option value="80" selected>80 minutos (aula regular)</option>
+                <option value="120">120 minutos (recinto aparte)</option>
+            </select>
+        </div>
+
+        <div class="instrucciones">
+            <h3 style="text-decoration: underline;">Instrucciones Generales:</h3>
+            <ol>
+                <li>Está <strong><u>terminantemente prohibido hablar</u></strong> o realizar <strong><u>cualquier acción que distraiga e interrumpa su prueba</u></strong>, en caso de darse, el tiempo de la prueba se suspende y se asignará calificación de 1.</li>
+                <li>No se permite disponer de cualquier material adicional a la prueba. Materiales permitidos: dispositivo Chromebook con licencia institucional.</li>
+                <li>Celulares y aparatos electrónicos apagados y guardados en bolsos o salveques.</li>
+                <li>En caso de cometer una acción fraudulenta, se seguirá el Reglamento de Evaluación y Disciplina.</li>
+                <li>Lea cuidadosamente todo el examen.</li>
+                <li>Alumnos con derecho a apoyos curriculares resolverán su examen en aula dispuesta, dispondrán de una lección más y consulta individualizada.</li>
+                <li>Revise su examen antes de enviarlo.</li>
+            </ol>
+        </div>
+        <p style="text-align:center; color:red; font-weight: bold;">⚠️ Al iniciar, la prueba pasará a pantalla completa y se activará el sistema anti-fraude.</p>
+        <button onclick="startTest()">INICIAR PRUEBA</button>
+    </div>
+
+    <!-- HUD TIMER -->
+    <div id="timerDisplay">⌛ Tiempo: <span id="timerCountdown">00:00</span></div>
+
+    <!-- EXAMEN -->
+    <div id="examenContainer" style="display:none; max-width: 900px; margin: 0 auto;">
+        
+        <h3>I Parte. Selección única (Valor total: 30 puntos)</h3>
+        <p style="color:#00FFFF; font-style:italic; background-color:#111; padding:10px; border-left:3px solid #00FFFF;"><strong>Instrucción:</strong> Escoja la opción que corresponde a la respuesta correcta. (1 punto cada respuesta correcta)</p>
+        <div id="mcqContainer"></div>
+
+        <h3 style="margin-top: 40px;">II Parte. Correspondencia (Valor total: 10 puntos)</h3>
+        <p style="color:#00FFFF; font-style:italic; background-color:#111; padding:10px; border-left:3px solid #00FFFF;"><strong>Instrucción:</strong> Relacione cada definición de la columna A con un concepto de la columna B. Seleccione la letra en el paréntesis. Cada letra se usa una sola vez y no sobran opciones. Cada relación correcta vale 1 punto.</p>
+        <div id="pareoContainer"></div>
+
+        <h3 style="margin-top: 40px;">III Parte. Respuesta corta (Valor total: 20 puntos)</h3>
+        <p style="color:#00FFFF; font-style:italic; background-color:#111; padding:10px; border-left:3px solid #00FFFF;"><strong>Instrucción:</strong> Escriba únicamente los nombres o conceptos solicitados. Cada respuesta correcta vale 1 punto. No se requieren explicaciones.</p>
+        <div id="saContainer"></div>
+
+        <button onclick="submitTest()" style="margin-top:40px;">FINALIZAR Y EVALUAR PRUEBA</button>
+    </div>
+
+    <!-- FRAUDE -->
+    <div id="fraudModal">
+        <h2>INTENTO DE FRAUDE DETECTADO</h2>
+        <p>Abandono de la ventana del examen detectado.</p>
+        <input type="password" id="fraudCode" placeholder="Código de desbloqueo" style="margin-bottom:15px; text-align:center; padding: 10px;">
+        <button onclick="unlockFraud()">Desbloquear</button>
+    </div>
+
+    <!-- BITÁCORA -->
+    <div id="resultsScreen">
+        <button onclick="downloadPDF()" style="background-color: #00FFFF; color: #000;">⬇️ DESCARGAR RESULTADOS EN PDF</button>
+        <div id="resultsData" class="bitacora-container">
+            <h1 style="color:black; background-color:#00FFFF; padding:10px; text-align:center; margin-top:0;">REPORTE DE RESULTADOS - MCS</h1>
+            <p><strong>Estudiante:</strong> <span id="resName"></span></p>
+            <p><strong>Sección:</strong> <span id="resSec"></span></p>
+            <p><strong>Tiempo utilizado:</strong> <span id="resTime"></span></p>
+            <p><strong>Puntaje Obtenido:</strong> <span id="resScore"></span> / <span id="rTotal"></span></p>
+            <p><strong>Porcentaje:</strong> <span id="resPercent"></span>% / <span id="rPorc"></span>%</p>
+            <p><strong>Nota (Base 100):</strong> <span id="resGrade"></span></p>
+            <hr style="border-color:#00FFFF; margin: 20px 0;">
+            <h2>BITÁCORA DE EVALUACIÓN</h2>
+            <div id="bitacoraContent"></div>
+        </div>
+    </div>
+
+<script>
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+const DATA_MCQ = [
+  {
+    q: `Lea y analice el texto.<br>En una clase de Educación Cívica, la docente presenta dos situaciones. En la primera, la ciudadanía elige mediante el voto al presidente de la República y a quienes integrarán la Asamblea Legislativa. Estas personas tomarán decisiones sobre los asuntos públicos en representación de la ciudadanía. En la segunda, una comunidad participa en una consulta para aprobar o rechazar, mediante el voto, una propuesta de beneficio comunal.<br>¿Cuál comparación distingue correctamente los dos procedimientos?`,
+    opts: [
+      { text: `En ambos, la ciudadanía delega la decisión sobre el asunto público porque una autoridad organiza la votación.`, isCorrect: false },
+      { text: `En la elección, la ciudadanía elige representantes que tomarán decisiones; en la consulta, aprueba o rechaza directamente una propuesta.`, isCorrect: true },
+      { text: `En ambos, la ciudadanía decide directamente sobre el asunto público porque cada persona emite su voto.`, isCorrect: false },
+      { text: `En la elección, la ciudadanía resuelve directamente el asunto público; en la consulta, elige representantes para que lo resuelvan.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En un colegio de Cartago, el Comité Ejecutivo estudiantil presenta un informe sobre los proyectos realizados durante el año. Al comparar lo anunciado con las obras terminadas, varios estudiantes encuentran una diferencia entre el presupuesto y el dinero gastado. El Comité publica los comprobantes, explica la diferencia y responde las preguntas. Además, propone mejorar el procedimiento de compra. Las explicaciones y los compromisos quedan registrados en un acta, y se acuerda una fecha para revisar los avances.<br>De acuerdo con lo visto en clase y a lo expresado en el texto ¿qué evidencia permite reconocer una rendición de cuentas más completa?`,
+    opts: [
+      { text: `Publicar el informe y facilitar la consulta de sus cifras.`, isCorrect: false },
+      { text: `Explicar la diferencia y responder por las decisiones de gasto.`, isCorrect: true },
+      { text: `Reafirmar las propuestas y renovar los compromisos del programa.`, isCorrect: false },
+      { text: `Comparar los proyectos y decidir si conviene reelegir al Comité.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Al comenzar el primer período anual de sesiones de la Asamblea Legislativa, la Presidencia de la República presenta un informe escrito sobre la administración del país y propone medidas para mejorar la marcha del Gobierno. En una clase se analizan dos momentos: primero, el examen del informe por parte de la Asamblea Legislativa; después, la revisión que realizan las organizaciones ciudadanas. Aunque ambos permiten valorar la gestión del Gobierno, intervienen actores con funciones diferentes. <br>¿Cómo se clasifica el control del primer momento descrito?`,
+    opts: [
+      { text: `Horizontal, por el control entre instituciones estatales.`, isCorrect: true },
+      { text: `Vertical, porque la población conoce los resultados del Gobierno.`, isCorrect: false },
+      { text: `Electoral, porque el informe permite elegir al próximo presidente.`, isCorrect: false },
+      { text: `Comunal, porque las medidas propuestas atienden necesidades de la población.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una asociación de desarrollo comunal consulta a vecinos y comerciantes sobre la falta de iluminación del barrio. Con la información reunida, sus integrantes acuerdan dar prioridad a una ruta peatonal y presentan una propuesta a la municipalidad para solicitar mejoras. La asociación también organiza jornadas de limpieza y comunica los acuerdos de sus reuniones. Todas estas acciones benefician a la comunidad, pero cumplen funciones distintas. Una de ellas permite llevar las necesidades del barrio ante una institución pública.<br>¿Qué actuación evidencia específicamente la intermediación entre la comunidad y las instituciones públicas?`,
+    opts: [
+      { text: `Consultar a vecinos y comerciantes para identificar las necesidades del barrio.`, isCorrect: false },
+      { text: `Priorizar una ruta peatonal mediante un acuerdo entre integrantes de la asociación.`, isCorrect: false },
+      { text: `Presentar la propuesta de los vecinos ante la municipalidad para gestionar su atención.`, isCorrect: true },
+      { text: `Comunicar los acuerdos y coordinar turnos de limpieza entre las personas participantes.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Durante un debate escolar, un grupo analiza qué significa elegir representantes mediante el voto. Un estudiante afirma que ganar una elección garantiza el cumplimiento de todas las promesas de campaña. Otra estudiante considera que el resultado permite a las personas electas gobernar durante un período, pero que la ciudadanía debe seguir examinando sus decisiones. El grupo discute si elegir a una autoridad asegura una buena gestión y si la participación ciudadana termina al conocer el resultado electoral.<br>¿Cuál conclusión se sostiene a partir de esa distinción?`,
+    opts: [
+      { text: `El voto certifica el programa y acredita por anticipado su cumplimiento.`, isCorrect: false },
+      { text: `El voto confirma la gestión y reemplaza su evaluación durante el período.`, isCorrect: false },
+      { text: `El voto autoriza la representación y permite mantener la vigilancia ciudadana.`, isCorrect: true },
+      { text: `El voto transfiere la soberanía y deja su ejercicio a quienes resultan electos.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En un cantón se organiza una consulta para que el electorado decida si el alcalde debe continuar en su cargo o si se debe revocar su mandato. Para este caso, se supone que se han cumplido los requisitos correspondientes. Un vecino compara la consulta con una elección municipal porque en ambas se vota. Otra persona afirma que cualquier consulta realizada mediante urnas es un referéndum. Antes de participar, la comunidad analiza qué decisión se tomará con el voto.<br>¿Cuál clasificación corresponde a la consulta expresada en el texto?`,
+    opts: [
+      { text: `Sufragio de elección, por escoger a la nueva autoridad municipal.`, isCorrect: false },
+      { text: `Referéndum legislativo, por resolver mediante votos una reforma de ley.`, isCorrect: false },
+      { text: `Plebiscito, por consultar al electorado cantonal sobre un mandato local.`, isCorrect: true },
+      { text: `Democracia representativa, por delegar la resolución en el concejo municipal.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Después de ganar una elección, una autoridad afirma que el apoyo de la mayoría le permite tomar decisiones sin atender las restricciones de la Constitución. Cuando varias organizaciones le piden explicaciones sobre su gestión, responde que están desconociendo su triunfo. Las organizaciones aclaran que aceptan el resultado electoral, pero que también esperan respeto por los derechos de toda la población. El conflicto lleva a discutir qué facultades recibe una autoridad electa y qué responsabilidades conserva durante su mandato.<br>¿Cuál interpretación de la delegación resuelve el conflicto democráticamente?`,
+    opts: [
+      { text: `El mandato permite definir los límites según el apoyo obtenido en las urnas.`, isCorrect: false },
+      { text: `El mandato permite reservar la revisión de los actos para la siguiente elección.`, isCorrect: false },
+      { text: `El mandato permite equiparar cada decisión del gobernante con la voluntad popular.`, isCorrect: false },
+      { text: `El mandato permite gobernar dentro de límites y con responsabilidad ante la ciudadanía.`, isCorrect: true },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En un país se celebran elecciones periódicas y participan varios partidos políticos. Sin embargo, durante la campaña, el Gobierno decide cuáles críticas pueden difundirse. Además, los jueces necesitan autorización del Poder Ejecutivo para continuar las investigaciones sobre sus actuaciones. El partido gobernante afirma que la existencia de elecciones demuestra que el país es democrático. Un grupo ciudadano cuestiona esa afirmación y pide considerar también las condiciones en que los partidos compiten y las instituciones supervisan al Gobierno.<br>¿Cuál opción resume las condiciones descritas en el texto?`,
+    opts: [
+      { text: `La democracia queda acreditada por la celebración periódica de las votaciones.`, isCorrect: false },
+      { text: `La pluralidad queda asegurada mientras varios partidos mantengan su inscripción.`, isCorrect: false },
+      { text: `La legitimidad queda garantizada si la mayoría acepta las decisiones del Ejecutivo.`, isCorrect: false },
+      { text: `La crítica y controles políticos ayudan a qué, posterior a la celebración de las  elecciones, las prácticas democráticas  se continúen desarrollando.`, isCorrect: true },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Un periódico publica documentos sobre una obra pública: se pagaron materiales que no aparecen en la construcción. Después de la denuncia, la institución estatal encargada de fiscalizar el uso de los recursos públicos solicita comprobantes y compara los pagos con el avance de la obra. Mientras tanto, el periódico informa sobre el caso y los vecinos consultan los resultados disponibles. En clase se analiza la diferencia entre la investigación del medio de comunicación y la fiscalización realizada por la institución estatal.<br>¿Qué opción identifica la intervención estatal descrita?`,
+    opts: [
+      { text: `Defensoría de los Habitantes y control horizontal de la gestión financiera.`, isCorrect: false },
+      { text: `Contraloría General de la República y control horizontal de fondos públicos.`, isCorrect: true },
+      { text: `Contraloría General de la República y control vertical por divulgar sus hallazgos.`, isCorrect: false },
+      { text: `Sala Constitucional y control horizontal de las compras efectuadas por el proyecto.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una emisora comunitaria abre un espacio para discutir una obra pública. Los vecinos presentan documentos y las autoridades explican sus decisiones. Una persona propone suspender el programa porque las críticas podrían reducir la confianza en el Gobierno. Otra pide que la emisora determine cuáles funcionarios deben recibir una sanción. Antes del siguiente programa, el equipo debe definir cómo atender las denuncias, permitir el intercambio de opiniones y actuar ante posibles irregularidades.<br>¿Qué criterio protege la libertad descrita y delimita la función de la emisora?`,
+    opts: [
+      { text: `Difundir las críticas y resolver en el programa las responsabilidades administrativas.`, isCorrect: false },
+      { text: `Dar prioridad a los informes oficiales y condicionar las críticas a su aprobación previa.`, isCorrect: false },
+      { text: `Reservar las críticas para el período electoral y publicar después los resultados oficiales.`, isCorrect: false },
+      { text: `Permitir críticas fundamentadas y remitir las responsabilidades a las instancias competentes.`, isCorrect: true },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una candidatura gana las elecciones mediante reglas aceptadas y en condiciones de competencia y respeto por los derechos. Sus adversarios reconocen el resultado, aunque no comparten su programa de gobierno. Meses después, critican una decisión de la autoridad electa. Un funcionario afirma que esas críticas significan que ya no reconocen su derecho a gobernar. El caso lleva a una clase a analizar si aceptar a una autoridad obliga también a estar de acuerdo con todas sus políticas.<br>¿Qué opción expresa correctamente el concepto definido en el pasaje?`,
+    opts: [
+      { text: `La legalidad reconoce la autoridad a partir del apoyo que recibe cada política.`, isCorrect: false },
+      { text: `La legitimidad reconoce el derecho a gobernar y permite discrepar de las políticas.`, isCorrect: true },
+      { text: `La representación exige que los electores compartan las decisiones de sus autoridades.`, isCorrect: false },
+      { text: `La soberanía popular exige renovar el reconocimiento después de cada decisión pública.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una persona considera que una autoridad pública ha vulnerado sus derechos y presenta un recurso ante la Sala Constitucional. La Sala examina la actuación de la autoridad y emite una resolución. Después, una organización ciudadana divulga el resultado y da seguimiento a su cumplimiento. Un estudiante afirma que todas las actuaciones deben clasificarse igual porque el caso comenzó con una iniciativa ciudadana. Otra estudiante propone distinguir quién actúa en cada etapa. La pregunta se refiere al examen y la resolución de la Sala.<br>¿Cómo se clasifica el control de la Sala Constitucional?`,
+    opts: [
+      { text: `Vertical, por el origen ciudadano de la gestión que se presenta.`, isCorrect: false },
+      { text: `Horizontal, por el examen institucional de una actuación pública.`, isCorrect: true },
+      { text: `Electoral, por la protección de la igualdad entre los participantes.`, isCorrect: false },
+      { text: `Vertical, por el seguimiento que realiza después la organización ciudadana.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En una empresa se presentan dos propuestas de organización. La primera, inspirada en las ideas de Alberto Martén Chavarría, busca la cooperación entre personas trabajadoras y empleadores mediante un fondo y beneficios que ayuden a atender necesidades económicas y sociales. La segunda busca representar a las personas trabajadoras en la defensa de sus intereses laborales mediante la negociación colectiva. Aunque ambas se relacionan con el bienestar de quienes trabajan, establecen formas distintas de participación y organización.<br>Segùn el texto anterior, el nombre de las propuestas respectivamente es:`,
+    opts: [
+      { text: `Sindicato y asociación solidarista.`, isCorrect: false },
+      { text: `Cooperativa y cámara patronal.`, isCorrect: false },
+      { text: `Asociación solidarista y sindicato.`, isCorrect: true },
+      { text: `Cámara patronal y cooperativa.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Un grupo de productores decide unirse voluntariamente para desarrollar un proyecto que atienda sus necesidades económicas y sociales. Sus integrantes serán propietarios conjuntos y participarán en las decisiones sobre su administración. En la misma reunión se presentan otras dos propuestas: reunir a empleadores para representar sus intereses ante el Gobierno y organizar a personas trabajadoras para negociar sus condiciones laborales. El grupo debe identificar qué distingue a cada organización, aunque todas busquen atender necesidades de sus integrantes.<br>¿Qué rasgo permite identificar específicamente la primera propuesta como cooperativa?`,
+    opts: [
+      { text: `La defensa de condiciones laborales mediante la negociación colectiva.`, isCorrect: false },
+      { text: `La representación de empleadores ante las autoridades de política económica.`, isCorrect: false },
+      { text: `La propiedad conjunta de sus integrantes y su gestión participativa del proyecto.`, isCorrect: true },
+      { text: `La cooperación entre trabajadores y empleadores para crear beneficios compartidos.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Dos partidos presentan propuestas distintas sobre el uso de los recursos públicos. Después de las elecciones, una agrupación vecinal pide que el partido perdedor deje de organizar reuniones, pues considera que la mayoría ya decidió cuáles ideas deben orientar al país. El partido ganador rechaza esa solicitud y reconoce que sus adversarios pueden seguir presentando propuestas y examinando su gestión. En clase se discute qué lugar deben tener las diferentes corrientes políticas durante el período de gobierno.<br>¿Qué medida desarrolla específicamente el pluralismo político durante el período de gobierno?`,
+    opts: [
+      { text: `Publicar los informes de gestión para que la ciudadanía examine las decisiones del Gobierno.`, isCorrect: false },
+      { text: `Someter una ley a consulta popular para que el electorado decida directamente su aprobación.`, isCorrect: false },
+      { text: `Mantener espacios públicos para que los partidos opositores organicen y difundan propuestas.`, isCorrect: true },
+      { text: `Facilitar el acceso al recinto electoral mediante ajustes para las personas con discapacidad.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En la antigua Atenas, quienes tenían la condición de ciudadanos podían participar personalmente en la Asamblea y decidir sobre los asuntos públicos. Sin embargo, las mujeres, las personas esclavizadas y los extranjeros estaban excluidos de la ciudadanía política. En un sistema actual, una población más amplia tiene derecho al voto y elige representantes. Una estudiante afirma que este sistema es menos democrático porque las decisiones no se toman directamente en una asamblea. La clase analiza qué aspectos deben compararse para valorar su afirmación.<br>¿Qué comparación permite evaluar la conclusión sin confundir dimensiones distintas?`,
+    opts: [
+      { text: `La decisión directa permite inferir una ciudadanía más inclusiva en Atenas.`, isCorrect: false },
+      { text: `La forma de decidir y la amplitud de la ciudadanía son dimensiones diferentes.`, isCorrect: true },
+      { text: `La elección de representantes implica una participación política más restringida.`, isCorrect: false },
+      { text: `La inclusión contemporánea reproduce la participación personal de la Asamblea ateniense.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Al estudiar la organización política de Atenas, una clase identifica dos funciones: la Bulé preparaba los asuntos que se discutirían y la Ecclesia o Asamblea de ciudadanos, deliberaba y tomaba las decisiones. Un grupo sostiene que la Bulé cumplía la misma función que un parlamento actual, encargado de aprobar leyes en representación del electorado. Para revisar esa comparación, la clase analiza qué órgano preparaba los asuntos y cuál tenía la decisión final.<br>¿Cuál era la diferencia real entre ambos entes?`,
+    opts: [
+      { text: `La Ecclesia preparaba las propuestas y la Bulé decidía por toda la ciudadanía.`, isCorrect: false },
+      { text: `La Bulé preparaba los asuntos y la Ecclesia conservaba la decisión ciudadana directa.`, isCorrect: true },
+      { text: `La Bulé preparaba las propuestas y los estrategas aprobaban las decisiones colectivas.`, isCorrect: false },
+      { text: `La Ecclesia elegía representantes y estos resolvían los asuntos preparados por la Bulé.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En el país Delta se celebran elecciones periódicas y participan varios partidos. Sin embargo, una comisión controlada por el gobierno excluye a los principales candidatos opositores e impide que se difundan críticas a las autoridades. En el país Sigma, el mismo partido ha ganado tres elecciones consecutivas, pero sus adversarios pueden presentar candidaturas, divulgar sus propuestas y cuestionar los resultados ante un tribunal independiente. Una persona sostiene que Delta es más democrático porque participan varios partidos, mientras que la permanencia del mismo partido en Sigma demuestra que existe una dictadura.<br>Segùn el texto anterior, ¿Qué opción presenta la comparación correcta entre los dos paìses?`,
+    opts: [
+      { text: `Delta ofrece mayores garantías democráticas por la variedad de partidos, mientras Sigma concentra el poder por la repetición del ganador.`, isCorrect: false },
+      { text: `Ambos países ofrecen garantías democráticas semejantes, pues la celebración periódica de elecciones permite corregir las restricciones a la oposición.`, isCorrect: false },
+      { text: `Sigma presenta mayores indicios de dictadura, pues la repetición del ganador pesa más que las condiciones en que participa la oposición.`, isCorrect: false },
+      { text: `Delta restringe la competencia pese a mantener varios partidos, mientras Sigma permite disputar el poder aunque se repita el ganador.`, isCorrect: true },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En un país con sistema presidencialista, la ciudadanía elige a quien encabeza el Poder Ejecutivo por un período definido. Una vez en el cargo, esa persona propone una política cuya aplicación requiere una ley aprobada por el Poder Legislativo. Un estudiante considera que el triunfo electoral permite ejecutar la propuesta sin esa aprobación. Otra estudiante señala que es necesario examinar las funciones que corresponden a cada poder del Estado.<br>¿Qué opción propone la distribución correcta de funciones de los poderes de la República?`,
+    opts: [
+      { text: `El pueblo elige al Ejecutivo y bajo el principio de representación le permite también ejecutar la función legislativa.`, isCorrect: false },
+      { text: `La soberanía popular elige al Ejecutivo y la mayoría electoral le da permiso para crear las leyes sin apoyo de ningún otro poder.`, isCorrect: false },
+      { text: `El pluralismo político es el que distribuye competencias de acuerdo a las necesidades y el presidencialismo reúne las decisiones del Estado. `, isCorrect: false },
+      { text: `Bajo el presidencialismo, el pueblo elige al Ejecutivo y la división de poderes distribuye competencias para que el legislativo apruebe las leyes`, isCorrect: true },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En un país se realizan elecciones periódicas en las que los partidos pueden competir en condiciones reales. Una misma agrupación gana durante dos períodos consecutivos. En la siguiente elección triunfa otro partido, que recibe el gobierno conforme a las reglas establecidas. Una persona afirma que solo esta última elección fue democrática, porque antes no había cambiado el partido gobernante. La clase analiza si una democracia exige un ganador diferente en cada elección.<br>Segùn lo visto en clase, ¿Cuàl opcion contiene la afirmación correcta?`,
+    opts: [
+      { text: `La alternancia política exige que cambie sì o sì el partido gobernante en cada elección celebrada, de lo contrario no es democracia.`, isCorrect: false },
+      { text: `La permanencia del partido ganador por dos periodos consecutivos demuestra ausencia total de democracia. `, isCorrect: false },
+      { text: `La permanencia del partido ganador por dos periodos y la llegada de otro partido al poder demuestra que existe pluralismo político y democracia.`, isCorrect: true },
+      { text: `El sistema presidencialista favorece el cambio y garantiza la existencia de que en cada periodo se cambie de partido político en el ejercicio del poder. `, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una asamblea aprueba por mayoría la realización de una actividad comunitaria. En el mismo acuerdo, prohíbe que un grupo minoritario publique sus críticas, aunque estas se expresan de manera pacífica y respetan los derechos de otras personas. La autoridad sostiene que permitir el desacuerdo debilitaría lo decidido por la mayoría. La comunidad debe valorar cómo llevar adelante la actividad y qué trato corresponde dar a quienes no están de acuerdo.<br>¿Cuál opción permite ejecutar la decisión y proteger la convivencia democrática?`,
+    opts: [
+      { text: `Aplicar el acuerdo válido y garantizar que la minoría pueda expresar su desacuerdo.`, isCorrect: true },
+      { text: `Mantener la prohibición mientras la mayoría continúe respaldando el acuerdo approved.`, isCorrect: false },
+      { text: `Ejecutar el acuerdo y posponer la expresión de críticas hasta que termine la actividad.`, isCorrect: false },
+      { text: `Someter la expresión del grupo a una nueva votación para confirmar su aceptación pública.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una clase registra que 120 personas inscritas para votar no participaron en una elección. El grupo conoce los testimonios de tres de ellas: una tuvo dificultades para trasladarse, otra no encontró una candidatura que la convenciera y otra enfermó. <br>Según la información anterior ¿Cuál es la opción correcta?`,
+    opts: [
+      { text: `Se observa abstencionismo, pero los datos no permiten atribuirle una causa común.`, isCorrect: true },
+      { text: `Se observa rechazo del sistema, pues no votar expresa la misma posición política.`, isCorrect: false },
+      { text: `Se observa falta de responsabilidad, pues las barreras descritas no explican la ausencia.`, isCorrect: false },
+      { text: `Se observa desconfianza electoral, pues los tres testimonios representan al grupo completo.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>En un caso hipotético, la ciudadanía vota para aprobar o rechazar una ley nacional, siguiendo las reglas correspondientes. Una persona afirma que este procedimiento equivale a elegir diputados. Otra sostiene que, después de esa votación, todas las leyes futuras deberán resolverse de la misma manera. La clase analiza qué se decide en esta consulta y cómo se relaciona con las funciones de los representantes electos.<br>Según el texto anterior ¿Qué interpretación distingue el mecanismo y su alcance?`,
+    opts: [
+      { text: `Es un referéndum sobre una ley y complementa las instituciones representativas.`, isCorrect: true },
+      { text: `Es un plebiscito local y transfiere la función legislativa al gobierno municipal.`, isCorrect: false },
+      { text: `Es una elección legislativa y delega la aprobación de la ley en nuevas autoridades.`, isCorrect: false },
+      { text: `Es democracia directa y reemplaza las decisiones futuras de los representantes electos.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una vecina considera que una institución pública no ha atendido una obligación y que esa omisión afecta sus derechos. Por ello, presenta una denuncia ante la Defensoría de los Habitantes. La Defensoría examina el caso dentro de sus competencias y solicita información a la institución señalada. En clase se comparan las dos actuaciones: la denuncia presentada por la vecina y la intervención posterior de la Defensoría.<br>¿Qué opción presenta el orden correcto de los controles o actuaciones descritas en el texto?`,
+    opts: [
+      { text: `Horizontal por la denuncia formal y vertical por la protección de una persona.`, isCorrect: false },
+      { text: `Vertical en ambas fases porque la persona afectada dio inicio al procedimiento.`, isCorrect: false },
+      { text: `Vertical por la denuncia ciudadana y horizontal por la intervención institucional.`, isCorrect: true },
+      { text: `Horizontal en ambas fases porque el trámite se realiza ante una entidad del Estado.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Después de una votación, surge un desacuerdo sobre el resultado electoral. Una agrupación pide que el Gobierno determine quién ganó. Otra sostiene que debe resolver la institución encargada de organizar y supervisar las elecciones.<br>¿Qué institución tiene competencia para atender asuntos electorales y por qué esa función no corresponde a cualquier institución pública?`,
+    opts: [
+      { text: `Tribunal Supremo de Elecciones, por su competencia en la organización electoral.`, isCorrect: true },
+      { text: `Poder Ejecutivo, por administrar el Estado durante la celebración de las elecciones.`, isCorrect: false },
+      { text: `Defensoría de los Habitantes, por resolver la declaratoria de las autoridades electas.`, isCorrect: false },
+      { text: `Contraloría General de la República, por fiscalizar el cumplimiento de las reglas electorales.`, isCorrect: false }
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Dos publicaciones denuncian irregularidades en una misma compra pública. La primera presenta contratos, compara cifras e incluye la explicación de la institución involucrada. La segunda reproduce un mensaje anónimo sin aportar documentos. Una persona propone compartir ambas como si tuvieran el mismo respaldo, porque coinciden en la acusación. Antes de difundirlas, un grupo de vecinos analiza qué información puede comprobar y qué afirmaciones necesitan más evidencia.<br>¿Qué acción fortalece el control ciudadano con la información disponible?`,
+    opts: [
+      { text: `Dar igual valor a ambas publicaciones porque coinciden en la versión de los hechos.`, isCorrect: false },
+      { text: `Esperar el pronunciamiento oficial y aceptar su contenido como prueba suficiente del caso.`, isCorrect: false },
+      { text: `Comparar los documentos y distinguir los hechos comprobables de la acusación sin respaldo.`, isCorrect: true },
+      { text: `Elegir la publicación con mayor difusión porque su alcance confirma la veracidad del relato.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Antes de discutir una obra, una comisión publica las actas y el presupuesto del proyecto. Sin embargo, durante la reunión solo permite intervenir a quienes apoyan la propuesta y no permitieron las preguntas críticas. <br>Según el texto anterior, ¿Cuáles de las siguientes opciones describe lo que sucedió con dos valores democráticos?`,
+    opts: [
+      { text: `La publicación de las actas y el presupuesto permitió el valor de la deliberación; la escucha de críticas favoreció la transparencia.`, isCorrect: false },
+      { text: `La publicación si garantizó la transparencia y deliberación de todas las partes; las críticas no eran para este momento.`, isCorrect: false },
+      { text: `La publicación de las actas y el presupuesto favoreció la transparencia, pero la deliberación no fue real al no incluirse las críticas hacia el proyecto.`, isCorrect: true },
+      { text: `La aprobación del proyecto garantiza inevitablemente que la transparencia y la deliberación se llevaron a cabo.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una organización privada sin fines de lucro desarrolla proyectos de educación ambiental en varias regiones y presenta propuestas al Gobierno. En un barrio, otra organización, pero de índole comunal, reúne a los vecinos para identificar necesidades de aceras y coordinar mejoras. <br>Según el texto anterior ¿Cuál opción identifica respectivamente las instituciones participantes?`,
+    opts: [
+      { text: `La primera es una cooperativa y la segunda es una asocaciación de desarrollo.`, isCorrect: false },
+      { text: `Las dos hacen referencia a asociaciónes de desarrollo comunal.`, isCorrect: false },
+      { text: `La primera es una Organización no Gubernamental y la segunda es una organización comunal.`, isCorrect: true },
+      { text: `La primera es una institución del gobierno y la otra es una organización no gubernamental.`, isCorrect: false },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Durante una campaña escolar, una estudiante recibe un rumor que perjudica a un adversario. Aunque difundirlo podría beneficiar a su grupo, decide verificarlo antes de compartirlo. Más adelante, defiende su propuesta, escucha las objeciones de otros estudiantes y apoya un cambio que beneficia a quienes piensan diferente. Algunos compañeros creen que aceptar ese cambio debilita sus convicciones. En clase se analizan sus acciones a partir de la verdad, el respeto y el servicio al prójimo estudiados en la responsabilidad cristiana.<br>Según el texto anterior ¿Cuál de las siguientes opciones presenta la responsabilidad cristiana estudiada en clase?`,
+    opts: [
+      { text: `Proteger la unidad del grupo requiere limitar la discusión de propuestas ajenas al grupo.`, isCorrect: false },
+      { text: `Respetar a los adversarios exige renunciar a las convicciones propias del debate escolar.`, isCorrect: false },
+      { text: `Defender el bien común permite difundir el rumor si favorece una propuesta beneficiosa.`, isCorrect: false },
+      { text: `La búsqueda de la verdad y el servicio al prójimo permiten defender convicciones con respeto y escuchar a los demás.`, isCorrect: true },
+    ]
+  },
+  {
+    q: `Lea y analice el texto.<br>Una organización reúne numerosas firmas para solicitar mejoras en el transporte y entrega su propuesta a las autoridades. Estas aceptan estudiarla junto con otras necesidades de la población. Sin embargo, la organización considera que las firmas le permiten decidir por sí misma cómo se utilizará el presupuesto público y excluir a quienes no apoyan su propuesta. El caso plantea qué valor tiene el respaldo ciudadano y hasta dónde llegan las facultades de quienes presentan una iniciativa.<br>Según el texto anterior y lo visto en clase, ¿Qué opción presenta correctamente el valor de la iniciativa y sus límites democráticos?`,
+    opts: [
+      { text: `Las firmas dan la decisión sobre los presupuestos a quienes organizaron la iniciativa ciudadana.`, isCorrect: false },
+      { text: `Las firmas respaldan una necesidad, pero resolverla exige respetar las funciones ya establecidas.`, isCorrect: true },
+      { text: `Las firmas son un ejemplo de representación de la población y obliga a que tenga toda la prioridad sobre otras necesidades.`, isCorrect: false },
+      { text: `Las firmas reemplazan la deliberación institucional cuando la propuesta alcanza respaldo mayoritario.`, isCorrect: false },
+    ]
+  }
+];
+
+const DATA_PAREO = [
+    { def: "El poder político tiene su origen en el pueblo.", ans: "F", ansText: "Soberanía popular", id: "p1" },
+    { def: "La ciudadanía delega decisiones públicas en personas que actúan en su nombre.", ans: "I", ansText: "Representación", id: "p2" },
+    { def: "Las personas influyen en asuntos públicos mediante acciones individuales u organizadas.", ans: "B", ansText: "Participación ciudadana", id: "p3" },
+    { def: "Una persona empadronada no emite su voto en una elección.", ans: "J", ansText: "Abstencionismo", id: "p4" },
+    { def: "Se acepta el derecho de una autoridad a gobernar conforme a reglas y principios democráticos.", ans: "D", ansText: "Legitimidad", id: "p5" },
+    { def: "Se reconoce la existencia de distintas ideas, intereses y opciones políticas.", ans: "G", ansText: "Pluralismo", id: "p6" },
+    { def: "Se reconoce la dignidad y los derechos de quienes piensan diferente.", ans: "A", ansText: "Respeto", id: "p7" },
+    { def: "Se cumplen deberes y se asumen las consecuencias de los propios actos.", ans: "H", ansText: "Responsabilidad", id: "p8" },
+    { def: "Se escuchan y valoran argumentos a favor y en contra antes de decidir.", ans: "C", ansText: "Diálogo y deliberación", id: "p9" },
+    { def: "Se permite examinar las decisiones y el uso de los recursos mediante información accesible.", ans: "E", ansText: "Transparencia", id: "p10" }
+];
+
+const PAREO_OPTS = [
+    { key: "A", text: "Respeto" }, { key: "B", text: "Participación ciudadana" },
+    { key: "C", text: "Diálogo y deliberación" }, { key: "D", text: "Legitimidad" },
+    { key: "E", text: "Transparencia" }, { key: "F", text: "Soberanía popular" },
+    { key: "G", text: "Pluralismo" }, { key: "H", text: "Responsabilidad" },
+    { key: "I", text: "Representación" }, { key: "J", text: "Abstencionismo" }
+];
+
+const DATA_SAQ = [
+    {
+        title: "De acuerdo con la descripción, anote el nombre de la institución u organización correspondiente. (Valor 10 pts)",
+        items: [
+            { q: "Ente que fiscaliza el uso de los fondos públicos:", ans: ["contraloria general de la republica", "contraloria", "cgr"], disp: "Contraloría General de la República" },
+            { q: "Institución que vela por la protección de los derechos e intereses de las personas frente a actuaciones u omisiones de instituciones públicas:", ans: ["defensoria de los habitantes", "defensoria"], disp: "Defensoría de los Habitantes" },
+            { q: "Es la entidad encargada de examinar la conformidad de normas y actuaciones con la Constitución y atiende recursos previstos para la protección de derechos:", ans: ["sala constitucional", "sala cuarta", "sala 4", "sala iv"], disp: "Sala Constitucional" },
+            { q: "Institución que vela por el cumplimiento de las reglas electorales y organiza y supervisa los procesos electorales dentro de sus competencias:", ans: ["tribunal supremo de elecciones", "tse"], disp: "Tribunal Supremo de Elecciones" },
+            { q: "Agrupación que representan a personas trabajadoras y defienden intereses laborales y sociales:", ans: ["sindicato", "sindicatos"], disp: "Sindicato" },
+            { q: "Agrupaciones que reúnen a empresarios o empleadores para representar sus intereses y participar en negociaciones o debates sobre políticas económicas:", ans: ["camara patronal", "camaras patronales"], disp: "Cámara patronal" },
+            { q: "Instituciones que promueven formas de cooperación entre personas trabajadoras y empleadores para atender necesidades y fomentar beneficios comunes:", ans: ["asociacion solidarista", "asociaciones solidaristas", "solidarismo"], disp: "Asociación solidarista" },
+            { q: "Organizaciones de propiedad conjunta en las que sus miembros participan para satisfacer necesidades y desarrollar actividades comunes:", ans: ["cooperativa", "cooperativas"], disp: "Cooperativa" },
+            { q: "Organizaciones privadas sin fines de lucro que trabajan en asuntos sociales, ambientales, educativos, humanitarios u otros fines lícitos:", ans: ["organizacion no gubernamental", "organizaciones no gubernamentales", "ong"], disp: "Organización No Gubernamental (ONG)" },
+            { q: "Ente que difunde información, investiga asuntos públicos y puede revelar irregularidades; debe procurar la honestidad y la transparencia:", ans: ["medios de comunicacion", "medio de comunicacion", "prensa"], disp: "Medios de comunicación" }
+        ]
+    },
+    {
+        title: "Anote los tres grupos excluidos de la ciudadanía política ateniense que menciona el material de estudio. (Valor: 3 pts)",
+        items: [
+            { q: "Grupo excluido (1):", ans: ["mujeres", "mujer"], disp: "Mujeres" },
+            { q: "Grupo excluido (2):", ans: ["personas esclavizadas", "esclavos", "esclavo"], disp: "Personas esclavizadas" },
+            { q: "Grupo excluido (3):", ans: ["extranjeros", "extranjero", "metecos"], disp: "Extranjeros" }
+        ]
+    },
+    {
+        title: "Escriba el mecanismo de participación correspondiente a cada caso. (Valor: 2 pts)",
+        items: [
+            { q: "El electorado vota directamente para aprobar o rechazar una ley nacional, conforme a las reglas aplicables:", ans: ["referendum"], disp: "Referéndum" },
+            { q: "El electorado de un cantón decide en consulta popular sobre un asunto específico de interés local, sin elegir representantes ni aprobar una ley nacional:", ans: ["plebiscito", "plebisito", "plebicito"], disp: "Plebiscito" }
+        ]
+    },
+    {
+        title: "Escriba la forma de gobierno a la que corresponde en cada enunciado. (Valor 5 pts)",
+        items: [
+            { q: "El diálogo, la deliberación y la participación siguen siendo esenciales, aunque se desarrollen mediante elecciones, consultas, organizaciones y espacios públicos:", ans: ["democracia", "sistema democratico"], disp: "Democracia" },
+            { q: "Tienden a protegerse libertades y el derecho a disentir, el poder se fundamenta en la soberanía popular y en el Estado de derecho:", ans: ["democracia", "sistema democratico"], disp: "Democracia" },
+            { q: "El poder se concentra en una persona o agrupación que se impone irrespetando el Estado de derecho:", ans: ["dictadura", "regimen autoritario", "autoritarismo"], disp: "Dictadura / Régimen Autoritario" },
+            { q: "La oposición y crítica tiende a enfrentar persecución o prohibirse, los controles políticos se debilitan o dependen de lo establecido por la persona o agrupación gobernante:", ans: ["dictadura", "regimen autoritario", "autoritarismo"], disp: "Dictadura / Régimen Autoritario" },
+            { q: "Las elecciones pueden suspenderse, manipularse o carecer de una competencia real:", ans: ["dictadura", "regimen autoritario", "autoritarismo"], disp: "Dictadura / Régimen Autoritario" }
+        ]
+    }
+];
+
+let finalMcq = [];
+let finalPareo = [];
+let finalSaBlocks = [];
+
+function renderExam() {
+    // 1. Aleatorizar MCQ
+    let shuffledMcq = shuffle([...DATA_MCQ]);
+    const mcqDiv = document.getElementById('mcqContainer');
+    shuffledMcq.forEach((item, index) => {
+        let opts = item.opts.map(opt => ({ text: opt.text, isCorrect: opt.isCorrect }));
+        opts = shuffle(opts);
+        
+        finalMcq.push({ q: item.q, opts: opts });
+        
+        let html = `<div class="mcq-question" id="mcq_${index}"><div class="q-text">${index + 1}. ${item.q}</div>`;
+        opts.forEach((opt, optIndex) => {
+            html += `<label><input type="radio" name="q${index}" value="${optIndex}"> ${opt.text}</label>`;
+        });
+        html += `</div>`;
+        mcqDiv.innerHTML += html;
+    });
+
+    // 2. Aleatorizar Pareo
+    finalPareo = shuffle([...DATA_PAREO]);
+    const pareoDiv = document.getElementById('pareoContainer');
+    let pareoHtml = `<div class="pareo-container"><div class="pareo-col-a">`;
+    finalPareo.forEach((item, index) => {
+        pareoHtml += `<div class="pareo-item"><label>( &nbsp; ) &nbsp; ${item.def}</label><input type="text" id="pareoSel_${index}" class="pareo-input" maxlength="1" autocomplete="off"></div>`;
+    });
+    pareoHtml += `</div><div class="pareo-col-b"><ul>`;
+    PAREO_OPTS.forEach(po => { pareoHtml += `<li><strong>${po.key}.</strong> ${po.text}</li>`; });
+    pareoHtml += `</ul></div></div>`;
+    pareoDiv.innerHTML = pareoHtml;
+
+    // 3. Aleatorizar Respuesta Corta
+    const saDiv = document.getElementById('saContainer');
+    let saIndex = 0;
+    DATA_SAQ.forEach(block => {
+        let shuffledItems = shuffle([...block.items]);
+        finalSaBlocks.push({ title: block.title, items: shuffledItems });
+        
+        saDiv.innerHTML += `<p class="q-text" style="color:#00FFFF; margin-top:20px;">${block.title}</p>`;
+        shuffledItems.forEach(item => {
+            saDiv.innerHTML += `<div class="sa-question"><label style="display:block; margin-bottom: 8px;">${item.q}</label><input type="text" id="saIn_${saIndex}" autocomplete="off"></div>`;
+            saIndex++;
+        });
+    });
+}
+
+// CONTROL DE PRUEBA
+let testActive = false;
+let totalTime = 0, timeRemaining = 0, timerInterval;
+
+function startTest() {
+    const estName = document.getElementById('estName').value.trim();
+    if(!estName) { alert("Por favor ingrese su nombre para continuar."); return; }
+    
+    document.documentElement.requestFullscreen().then(() => {
+        testActive = true;
+        document.getElementById('loginScreen').style.display = 'none';
+        
+        renderExam();
+        
+        document.getElementById('examenContainer').style.display = 'block';
+        totalTime = parseInt(document.getElementById('estTimer').value) * 60;
+        timeRemaining = totalTime;
+        document.getElementById('timerDisplay').style.display = 'flex';
+        startTimer();
+    }).catch(err => alert("El navegador bloqueó la pantalla completa. Es requisito para evitar fraudes."));
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeRemaining--;
+        let m = Math.floor(timeRemaining / 60);
+        let s = timeRemaining % 60;
+        document.getElementById('timerCountdown').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+        if(timeRemaining <= 0) { clearInterval(timerInterval); alert("Tiempo finalizado."); submitTest(true); }
+    }, 1000);
+}
+
+// ANTI-FRAUDE
+document.addEventListener("visibilitychange", () => { if (document.hidden && testActive) triggerFraud(); });
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && testActive) triggerFraud(); });
+
+function triggerFraud() {
+    document.getElementById('fraudModal').style.display = 'flex';
+    document.getElementById('examenContainer').style.display = 'none';
+    document.getElementById('timerDisplay').style.display = 'none';
+}
+function unlockFraud() {
+    if(document.getElementById('fraudCode').value === "1986") {
+        document.getElementById('fraudCode').value = "";
+        document.getElementById('fraudModal').style.display = 'none';
+        document.getElementById('examenContainer').style.display = 'block';
+        document.getElementById('timerDisplay').style.display = 'flex';
+        document.documentElement.requestFullscreen().catch(e => console.log(e));
+    } else { alert("Código incorrecto."); }
+}
+
+// EVALUACIÓN
+function norm(str) { return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, " "); }
+
+function submitTest(force = false) {
+    if (!force) {
+        let allAnswered = true;
+        // Validar Selección Única
+        for(let i=0; i<finalMcq.length; i++) {
+            let inputs = document.getElementsByName(`q${i}`);
+            let answered = Array.from(inputs).some(radio => radio.checked);
+            if(!answered) { allAnswered = false; break; }
+        }
+        // Validar Pareo
+        if(allAnswered) {
+            for(let i=0; i<finalPareo.length; i++) {
+                if(document.getElementById(`pareoSel_${i}`).value.trim() === "") { allAnswered = false; break; }
+            }
+        }
+        // Validar Respuesta Corta
+        if(allAnswered) {
+            let totalSa = document.querySelectorAll('[id^="saIn_"]').length;
+            for(let i=0; i<totalSa; i++) {
+                if(document.getElementById(`saIn_${i}`).value.trim() === "") { allAnswered = false; break; }
+            }
+        }
+        
+        if(!allAnswered) {
+            alert("⚠️ Aún tienes preguntas sin responder. Por favor, revisa todo el examen y completa las respuestas faltantes antes de finalizar.");
+            return;
+        }
+    }
+
+    testActive = false;
+    clearInterval(timerInterval);
+    if(document.fullscreenElement) document.exitFullscreen().catch(e=>console.log(e));
+    
+    document.getElementById('examenContainer').style.display = 'none';
+    document.getElementById('timerDisplay').style.display = 'none';
+    document.getElementById('resultsScreen').style.display = 'block';
+    
+    let totalPoints = 0;
+    let bitacoraHtml = "";
+
+    // MCQ
+    bitacoraHtml += "<h3>I Parte: Selección Única</h3>";
+    finalMcq.forEach((item, index) => {
+        let inputs = document.getElementsByName(`q${index}`);
+        let studentIndex = -1;
+        inputs.forEach(i => { if(i.checked) studentIndex = parseInt(i.value); });
+        
+        let correctIndex = item.opts.findIndex(o => o.isCorrect);
+        if(studentIndex === correctIndex) totalPoints++;
+        
+        bitacoraHtml += `<div style="margin-bottom: 10px;"><strong>${item.q}</strong><br>`;
+        if(studentIndex === -1) bitacoraHtml += `<span style="color:orange;">(Sin responder)</span><br>`;
+        
+        item.opts.forEach((opt, optIndex) => {
+            let color = "#00FFFF"; 
+            if(optIndex === studentIndex && optIndex === correctIndex) color = "#A020F0"; 
+            else if(optIndex === studentIndex && optIndex !== correctIndex) color = "red"; 
+            else if(optIndex === correctIndex) color = "#00FF00"; 
+            bitacoraHtml += `<span style="color:${color}; display:block;">- ${opt.text}</span>`;
+        });
+        bitacoraHtml += `</div>`;
+    });
+
+    // Pareo
+    bitacoraHtml += "<h3>II Parte: Correspondencia</h3><table><tr><th>Respuesta Estudiante</th><th>Respuesta Correcta</th></tr>";
+    finalPareo.forEach((item, index) => {
+        let studentL = document.getElementById(`pareoSel_${index}`).value.toUpperCase().replace(/\s/g, '');
+        let correctL = item.ans;
+        if(studentL === correctL) totalPoints++;
+        
+        let pColor = (studentL === correctL) ? "#A020F0" : "red";
+        let displayAns = studentL || "(Sin responder)";
+        bitacoraHtml += `<tr><td style="color:${pColor}">${item.def}<br><strong>Respuesta: ${displayAns}</strong></td><td style="color:#00FF00"><strong>${correctL}</strong></td></tr>`;
+    });
+    bitacoraHtml += "</table>";
+
+    // SAQ
+    bitacoraHtml += "<h3>III Parte: Respuesta Corta</h3><ul>";
+    let saIndex = 0;
+    finalSaBlocks.forEach(block => {
+        bitacoraHtml += `<p><strong>${block.title}</strong></p>`;
+        block.items.forEach(item => {
+            let studentAns = document.getElementById(`saIn_${saIndex}`).value;
+            let normStudent = norm(studentAns);
+            
+            let isCorrect = item.ans.some(v => normStudent === norm(v) || (norm(v).includes(normStudent) && normStudent.length > 5));
+            if(isCorrect) totalPoints++;
+            
+            let displayAns = studentAns || "(Sin responder)";
+            bitacoraHtml += `<li>${item.q}<br>${displayAns} / <span style="color:#A020F0; font-weight:bold;">${item.disp}</span></li>`;
+            saIndex++;
+        });
+    });
+    bitacoraHtml += "</ul>";
+
+    // Cálculos
+    let maxPts = parseFloat(document.getElementById('vTotal').innerText);
+    let maxPorc = parseFloat(document.getElementById('vPorc').innerText);
+    
+    document.getElementById('resName').innerText = document.getElementById('estName').value;
+    document.getElementById('resSec').innerText = document.getElementById('estSec').value || "No indicada";
+    
+    let tUsed = totalTime - timeRemaining;
+    document.getElementById('resTime').innerText = `${Math.floor(tUsed / 60)} min, ${tUsed % 60} seg`;
+    
+    document.getElementById('resScore').innerText = totalPoints;
+    document.getElementById('rTotal').innerText = maxPts;
+    
+    let percent = ((totalPoints / maxPts) * maxPorc).toFixed(2);
+    document.getElementById('resPercent').innerText = percent;
+    document.getElementById('rPorc').innerText = maxPorc;
+    
+    let nota = ((totalPoints / maxPts) * 100).toFixed(2);
+    document.getElementById('resGrade').innerText = nota;
+    
+    document.getElementById('bitacoraContent').innerHTML = bitacoraHtml;
+}
+
+function downloadPDF() {
+    const opt = {
+        margin: 0.5,
+        filename: `Examen_Civica_${document.getElementById('estName').value.replace(/\s+/g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, backgroundColor: '#050505' },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(document.getElementById('resultsData')).save();
+}
+</script>
+</body>
+</html>
